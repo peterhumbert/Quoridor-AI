@@ -32,6 +32,8 @@ namespace QuoridorAI
 
             Console.WriteLine(list[0][1].a);
             Console.WriteLine(list[0].Remove((6, "seond")));
+
+            b.print();
         }
     }
 }

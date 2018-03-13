@@ -5,13 +5,33 @@ namespace QuoridorAI
 {
     public class Board
     {
-        private List<(int x,int y)>[,] reachable = new List<(int,int)>[9, 9];
-        private List<(int x, int y)>[,] diagonals = new List<(int, int)>[9, 9];
         private int N = 9;
+        private List<(int x, int y)>[,] reachable { get; set; }
+        private List<(int x, int y)>[,] diagonals { get; set; }
+        private char[,] printableBoard { get; set; }
 
         public Board()
         {
             int i, j;
+
+            reachable = new List<(int, int)>[N, N];
+            diagonals = new List<(int, int)>[N, N];
+            printableBoard = new char[2 * N - 1, 2 * N - 1];
+
+
+            // populate the printable board array
+            for (i = 0; i < 2 * N - 1; i++) {
+                for (j = 0; j < 2 * N - 1; j++) {
+                    printableBoard[i, j] = ' ';
+                }
+            }
+            for (i = 0; i < 2 * N - 1; i+=2) {
+                for (j = 0; j < 2 * N - 1; j+=2) {
+                    printableBoard[i, j] = '\u2610';
+                }
+            }
+            printableBoard[0, N - 1] = 'A';
+            printableBoard[2*N - 2, N - 1] = 'B';
 
             // populate list arrays with empty lists
             for (i = 0; i < N; i++) {
@@ -121,8 +141,21 @@ namespace QuoridorAI
          
 
         public void print() {
-            Console.WriteLine(" 0 1 2 3 4 5 6 7 8 ");
-            Console.WriteLine("|- - - - - - - - -|");
+            Console.WriteLine("  0 1 2 3 4 5 6 7 8 ");
+            Console.WriteLine(" |-----------------|");
+            for (int i = 0; i < 2 * N - 1; i++) {
+                if (i % 2 == 0)
+                    Console.Write(i / 2);
+                else
+                    Console.Write(' ');
+                Console.Write("|");
+                for (int j = 0; j < 2 * N - 1; j++) {
+                    Console.Write(printableBoard[i, j]);
+                }
+                Console.WriteLine("|");
+            }
+            Console.WriteLine(" |-----------------|");
+
         }
     }
 }
