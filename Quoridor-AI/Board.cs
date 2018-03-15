@@ -6,8 +6,8 @@ namespace QuoridorAI
     public class Board
     {
         private int N = 9;
-        private List<(int x, int y)>[,] reachable { get; set; }
-        private List<(int x, int y)>[,] diagonals { get; set; }
+        private List<(int r, int c)>[,] reachable { get; set; }
+        private List<(int r, int c)>[,] diagonals { get; set; }
         private char[,] printableBoard { get; set; }
 
         public Board()
@@ -36,8 +36,8 @@ namespace QuoridorAI
             // populate list arrays with empty lists
             for (i = 0; i < N; i++) {
                 for (j = 0; j < N; j++) {
-                    reachable[i, j] = new List<(int x, int y)>();
-                    diagonals[i, j] = new List<(int x, int y)>();
+                    reachable[i, j] = new List<(int r, int c)>();
+                    diagonals[i, j] = new List<(int r, int c)>();
                 }
             }
 
@@ -84,7 +84,7 @@ namespace QuoridorAI
             i = 0;
             for (j = 1; j < N-1; j++)
             {
-                reachable[i, j].Add((x: i + 1, y: j));
+                reachable[i, j].Add((r: i + 1, c: j));
                 reachable[i, j].Add((i, j - 1));
                 reachable[i, j].Add((i, j + 1));
 
@@ -123,18 +123,34 @@ namespace QuoridorAI
 
         }
 
-        public List<char> GetValidMoves() {
+        public List<(int r, int c)> GetValidMoves((int r, int c) p1, 
+                                                  (int r, int c) p2) {
+            bool adjacent = false;
+            List<(int r, int c)> temp = 
+                reachable[p1.r, p1.c]; // for aggregating valid positions
+            
+            foreach ((int r, int c) in reachable[p1.r, p1.c]) {
+                if ((r,c).Equals(p2)) {
+                    // the two pieces are in adjacent squares
+                    adjacent = true;
+                    temp.Remove((r, c));
 
+                    // TODO identify valid diagonals
+                    // TODO identify if 2-advance jump is valid
+                    break;
+                }
+            }
+                
             return null;
         }
 
         public bool PlaceWall(Tuple<int, int> t) {
-
+            // check if 4 reachable links will be broken
             return false;
         }
 
         public Board Clone() {
-          
+            
             return null;
         }
 
