@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace QuoridorAI
 {
@@ -9,6 +10,8 @@ namespace QuoridorAI
         private List<(int r, int c)>[,] reachable { get; set; }
         private List<(int r, int c)>[,] diagonals { get; set; }
         private char[,] printableBoard { get; set; }
+        private (int r, int c) Apos { get; set; }
+        private (int r, int c) Bpos { get; set; }
 
         public Board()
         {
@@ -20,31 +23,41 @@ namespace QuoridorAI
 
 
             // populate the printable board array
-            for (i = 0; i < 2 * N - 1; i++) {
-                for (j = 0; j < 2 * N - 1; j++) {
+            for (i = 0; i < 2 * N - 1; i++)
+            {
+                for (j = 0; j < 2 * N - 1; j++)
+                {
                     printableBoard[i, j] = ' ';
                 }
             }
-            for (i = 0; i < 2 * N - 1; i+=2) {
-                for (j = 0; j < 2 * N - 1; j+=2) {
+            for (i = 0; i < 2 * N - 1; i += 2)
+            {
+                for (j = 0; j < 2 * N - 1; j += 2)
+                {
                     printableBoard[i, j] = '\u2610';
                 }
             }
             printableBoard[0, N - 1] = 'A';
-            printableBoard[2*N - 2, N - 1] = 'B';
+            printableBoard[2 * N - 2, N - 1] = 'B';
+            Apos = (0, N-1);
+            Bpos = (2 * N - 2, N - 1);
 
             // populate list arrays with empty lists
-            for (i = 0; i < N; i++) {
-                for (j = 0; j < N; j++) {
+            for (i = 0; i < N; i++)
+            {
+                for (j = 0; j < N; j++)
+                {
                     reachable[i, j] = new List<(int r, int c)>();
                     diagonals[i, j] = new List<(int r, int c)>();
                 }
             }
 
             // Initialize the spaces reachable from interior node
-            for (i = 1; i < N-1; i++) {
-                for (j = 1; j < 9; j++) {
-                    reachable[i, j].Add((i - 1,j));
+            for (i = 1; i < N - 1; i++)
+            {
+                for (j = 1; j < 9; j++)
+                {
+                    reachable[i, j].Add((i - 1, j));
                     reachable[i, j].Add((i + 1, j));
                     reachable[i, j].Add((i, j - 1));
                     reachable[i, j].Add((i, j + 1));
@@ -58,7 +71,7 @@ namespace QuoridorAI
 
             // Initialize the spaces reachable from left edge
             j = 0;
-            for (i = 1; i < N-1; i++)
+            for (i = 1; i < N - 1; i++)
             {
                 reachable[i, j].Add((i - 1, j));
                 reachable[i, j].Add((i + 1, j));
@@ -69,8 +82,8 @@ namespace QuoridorAI
             }
 
             // Initialize the spaces reachable from right edge
-            j = N-1;
-            for (i = 1; i < N-1; i++)
+            j = N - 1;
+            for (i = 1; i < N - 1; i++)
             {
                 reachable[i, j].Add((i - 1, j));
                 reachable[i, j].Add((i + 1, j));
@@ -82,7 +95,7 @@ namespace QuoridorAI
 
             // Initialize the spaces reachable from top edge
             i = 0;
-            for (j = 1; j < N-1; j++)
+            for (j = 1; j < N - 1; j++)
             {
                 reachable[i, j].Add((r: i + 1, c: j));
                 reachable[i, j].Add((i, j - 1));
@@ -93,8 +106,8 @@ namespace QuoridorAI
             }
 
             // Initialize the spaces reachable from bottom edge
-            i = N-1;
-            for (j = 1; j < N-1; j++)
+            i = N - 1;
+            for (j = 1; j < N - 1; j++)
             {
                 reachable[i, j].Add((i - 1, j));
                 reachable[i, j].Add((i, j - 1));
@@ -109,30 +122,31 @@ namespace QuoridorAI
             reachable[0, 0].Add((1, 0));
             diagonals[0, 0].Add((1, 1));
 
-            reachable[0, N-1].Add((0, N-2));
-            reachable[0, N-1].Add((1, N-1));
-            diagonals[0, N-1].Add((1, N-2));
+            reachable[0, N - 1].Add((0, N - 2));
+            reachable[0, N - 1].Add((1, N - 1));
+            diagonals[0, N - 1].Add((1, N - 2));
 
-            reachable[N-1, 0].Add((N-2, 0));
-            reachable[N-1, 0].Add((N-1, 1));
-            diagonals[N-1, 0].Add((N-2, 1));
+            reachable[N - 1, 0].Add((N - 2, 0));
+            reachable[N - 1, 0].Add((N - 1, 1));
+            diagonals[N - 1, 0].Add((N - 2, 1));
 
-            reachable[N-1, N-1].Add((N-2, N-1));
-            reachable[N-1, N-1].Add((N-1, N-2));
-            diagonals[N-1, N-1].Add((N-2, N-2));
+            reachable[N - 1, N - 1].Add((N - 2, N - 1));
+            reachable[N - 1, N - 1].Add((N - 1, N - 2));
+            diagonals[N - 1, N - 1].Add((N - 2, N - 2));
 
-        }
+        } //end constructor
 
-        public List<(int r, int c)> GetValidMoves((int r, int c) p1, 
-                                                  (int r, int c) p2) {
-            bool adjacent = false;
-            List<(int r, int c)> temp = 
+        public List<(int r, int c)> GetValidMoves((int r, int c) p1,
+                                                  (int r, int c) p2)
+        {
+            List<(int r, int c)> temp =
                 reachable[p1.r, p1.c]; // for aggregating valid positions
-            
-            foreach ((int r, int c) in reachable[p1.r, p1.c]) {
-                if ((r,c).Equals(p2)) {
+
+            foreach ((int r, int c) in reachable[p1.r, p1.c])
+            {
+                if ((r, c).Equals(p2))
+                {
                     // the two pieces are in adjacent squares
-                    adjacent = true;
                     temp.Remove((r, c));
 
                     // TODO identify valid diagonals
@@ -140,38 +154,71 @@ namespace QuoridorAI
                     break;
                 }
             }
-                
-            return null;
-        }
 
-        public bool PlaceWall(Tuple<int, int> t) {
-            // check if 4 reachable links will be broken
+            return null;
+        } // end GetValidMoves()
+
+        public bool PlaceWall(Tuple<int, int> t)
+        {
+            // check if 4 reachable links in reachable will be broken
             return false;
-        }
+        } // end PlaceWall()
 
-        public Board Clone() {
-            
+        public Board Clone()
+        {
+            // make a new board object, set all its members equal to the values
+            // of this instance
+
             return null;
-        }
+        } // end Clone()
 
-         
 
-        public void print() {
+
+        public void print()
+        {
             Console.WriteLine("  0 1 2 3 4 5 6 7 8 ");
             Console.WriteLine(" |-----------------|");
-            for (int i = 0; i < 2 * N - 1; i++) {
+            for (int i = 0; i < 2 * N - 1; i++)
+            {
                 if (i % 2 == 0)
                     Console.Write(i / 2);
                 else
                     Console.Write(' ');
                 Console.Write("|");
-                for (int j = 0; j < 2 * N - 1; j++) {
+                for (int j = 0; j < 2 * N - 1; j++)
+                {
                     Console.Write(printableBoard[i, j]);
                 }
                 Console.WriteLine("|");
             }
             Console.WriteLine(" |-----------------|");
 
+        } // end print()
+
+        public bool HasWinner()
+        {
+            return Apos.r == 2 * N - 2 || Bpos.r == 0;
+        } // end HasWinner()
+
+        public bool PlayMove(String move) {
+            if (move[0] == 'w' || move[0] == 'W') {
+                Console.WriteLine("Playmove");
+                // the player wants to place a wall
+                Regex rx = new Regex(@"\d?,\d?", RegexOptions.Compiled);
+                
+                // Find matches.
+                MatchCollection matches = rx.Matches(move);
+
+                foreach (Match match in matches)
+                {
+                    Console.WriteLine(match.Value);
+                }
+
+            } else {
+                // the player wants to move their piece
+                
+            }
+            return true;
         }
     }
 }
