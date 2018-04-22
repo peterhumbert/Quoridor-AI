@@ -158,14 +158,39 @@ namespace QuoridorAI
             return null;
         } // end GetValidMoves()
 
-        public bool PlaceWall(List<(int r, int c)> wallPoints)
+        public bool PlaceWall(List<(int r, int c)> wallPoints, bool isVert)
         {
+            Console.WriteLine("placewall");
             // check if 2 reachable links will be broken
-
+            if (!(reachable[wallPoints[0].r, wallPoints[0].c].Contains(wallPoints[1]) &&
+                  reachable[wallPoints[2].r, wallPoints[2].c].Contains(wallPoints[3])))
+                 return false;
+            
             // check if 2 diagonal links will be broken
+            if (!(diagonals[wallPoints[0].r, wallPoints[0].c].Contains(wallPoints[3]) &&
+                  diagonals[wallPoints[1].r, wallPoints[1].c].Contains(wallPoints[2])))
+                return false;
 
+            // all links are present and move is valid, so break links
+            reachable[wallPoints[0].r, wallPoints[0].c].Remove(wallPoints[1]);
+            reachable[wallPoints[2].r, wallPoints[2].c].Remove(wallPoints[3]);
+            diagonals[wallPoints[0].r, wallPoints[0].c].Remove(wallPoints[3]);
+            diagonals[wallPoints[1].r, wallPoints[1].c].Remove(wallPoints[2]);
 
-            return false;
+            // update printable board
+            if (isVert)
+            {
+                printableBoard[2 * wallPoints[0].r, 2 * wallPoints[0].c] = '|';
+                printableBoard[2 * wallPoints[0].r + 1, 2 * wallPoints[0].c] = '|';
+            }
+            else
+            {
+                Console.WriteLine("updating printable board");
+                printableBoard[2 * wallPoints[0].r, 2 * wallPoints[0].c] = '-';
+                printableBoard[2 * wallPoints[0].r, 2 * wallPoints[0].c + 1] = '-';
+            }
+
+            return true;
         } // end PlaceWall()
 
         public Board Clone()
@@ -205,6 +230,11 @@ namespace QuoridorAI
         public bool PlayMove(String move) {
             List<(int r, int c)> wallPoints = new List<(int r, int c)>();
             List<(int r, int c)> wallPoints2 = new List<(int r, int c)>();
+            for (int i = 0; i < 4; i++)
+            {
+                wallPoints.Add((-1,-1));
+                wallPoints2.Add((-1,-1));
+            }
 
             if (move[0] == 'h' || move[0] == 'v') {
                 Console.WriteLine("playmove");
@@ -216,10 +246,12 @@ namespace QuoridorAI
                 MatchCollection matches = rx.Matches(move);
                 Console.WriteLine(matches.Count);
 
+                int j = 0;
                 foreach (Match match in matches)
                 {
-                    wallPoints.Add((Int32.Parse(match.Value.Substring(0, 1)),
-                                    Int32.Parse(match.Value.Substring(2, 1))));
+                    wallPoints[j] = (Int32.Parse(match.Value.Substring(0, 1)),
+                                    Int32.Parse(match.Value.Substring(2, 1)));
+                    j++;
                 }
 
                 for (int i = 0; i < 4; i++)
@@ -243,11 +275,11 @@ namespace QuoridorAI
                 // sort pairwise for horizontal if needed
                 if (move[0] == 'h') {
                     (int r, int c) temp = wallPoints2[2];
-                    wallPoints[2] = wallPoints[1];
-                    wallPoints[1] = temp;
+                    wallPoints2[2] = wallPoints2[1];
+                    wallPoints2[1] = temp;
                 }
 
-                return PlaceWall(wallPoints);
+                return PlaceWall(wallPoints2, move[0] == 'v');
             } else {
                 // the player wants to move their piece
                 
