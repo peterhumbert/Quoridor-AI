@@ -160,7 +160,11 @@ namespace QuoridorAI
 
         public bool PlaceWall(List<(int r, int c)> wallPoints)
         {
-            // check if 4 reachable links in reachable will be broken
+            // check if 2 reachable links will be broken
+
+            // check if 2 diagonal links will be broken
+
+
             return false;
         } // end PlaceWall()
 
@@ -200,11 +204,13 @@ namespace QuoridorAI
 
         public bool PlayMove(String move) {
             List<(int r, int c)> wallPoints = new List<(int r, int c)>();
+            List<(int r, int c)> wallPoints2 = new List<(int r, int c)>();
 
             if (move[0] == 'h' || move[0] == 'v') {
                 Console.WriteLine("playmove");
                 // the player wants to place a wall
                 Regex rx = new Regex(@"\d?,\d?", RegexOptions.Compiled);
+                int minr = 100, minc = 100;
                 
                 // Find matches.
                 MatchCollection matches = rx.Matches(move);
@@ -216,34 +222,29 @@ namespace QuoridorAI
                                     Int32.Parse(match.Value.Substring(2, 1))));
                 }
 
+                for (int i = 0; i < 4; i++)
+                {
+                    if (wallPoints[i].r < minr) minr = wallPoints[i].r;
+                    if (wallPoints[i].c < minc) minc = wallPoints[i].c;
+                }
+
+                // sort pairwise for vertical
+                for (int i = 0; i < 4; i++) {
+                    if (wallPoints[i].r == minr && wallPoints[i].c == minc)
+                        wallPoints2[0] = wallPoints[i];
+                    else if (wallPoints[i].r == minr && wallPoints[i].c != minc)
+                        wallPoints2[1] = wallPoints[i];
+                    else if (wallPoints[i].c == minc && wallPoints[i].r != minr)
+                        wallPoints2[2] = wallPoints[i];
+                    else if (wallPoints[i].c != minc && wallPoints[i].r != minr)
+                        wallPoints2[3] = wallPoints[i];
+                }
+
+                // sort pairwise for horizontal if needed
                 if (move[0] == 'h') {
-                    // horizontal -- find matching column values, sort pairwise
-                    bool sorted = false;
-                    int i = 1;
-                    while(!sorted) {
-                        if (wallPoints[i].c == wallPoints[0].c) {
-                            (int r, int c) temp = wallPoints[i];
-                            wallPoints[i] = wallPoints[1];
-                            wallPoints[1] = temp;
-                            sorted = true;
-                        }
-                        i++;
-                    }
-                } else {
-                    // vertical -- find matching row values, sort pairwise
-                    bool sorted = false;
-                    int i = 1;
-                    while (!sorted)
-                    {
-                        if (wallPoints[i].r == wallPoints[0].r)
-                        {
-                            (int r, int c) temp = wallPoints[i];
-                            wallPoints[i] = wallPoints[1];
-                            wallPoints[1] = temp;
-                            sorted = true;
-                        }
-                        i++;
-                    }
+                    (int r, int c) temp = wallPoints2[2];
+                    wallPoints[2] = wallPoints[1];
+                    wallPoints[1] = temp;
                 }
 
                 return PlaceWall(wallPoints);
