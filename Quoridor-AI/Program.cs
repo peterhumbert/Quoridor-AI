@@ -39,7 +39,7 @@ namespace QuoridorAI
 
             b.print();
 
-            b.PlayMove("w (1,2) (4,3) (5,5) (3,3)");
+            b.PlayMove("h (1,2) (4,3) (5,5) (3,3)");
 
             // gameplay loop
             while (!b.HasWinner())
